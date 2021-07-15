@@ -1,0 +1,73 @@
+<apex:page  lightningStyleSheets="true" standardStylesheets="false" showHeader="false" sidebar="false" docType="html-5.0" applyHtmlTag="false" applyBodyTag="false">
+    <html>
+        <head>
+                <title>Monitoring Container</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+                <meta http-equiv="Pragma" content="no-cache" />
+                <meta http-equiv="Expires" content="0" />
+
+                <!-- Start New Relic Monitoring -->
+                <apex:includeScript value="{!$Resource[$CurrentPage.parameters.vfsnippet]}"/>
+                <script>
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const vfHost = urlParams.get('vfhost');
+                    const vfPage = urlParams.get('vfpage');
+                    const vfSnippet = urlParams.get('vfsnippet');
+                    newrelic.setPageViewName(vfPage, vfHost);
+                    newrelic.interaction().ignore(); // ignore load of VF container page
+                </script>
+                <!-- End New Relic Monitoring -->
+                    
+
+
+        </head>
+        <body>
+            <apex:slds /> 
+            <img id="isEnabled" src="/img/permissions_confirm16.gif	" alt="Snippet enabled"></img>
+            Snippet: {!$CurrentPage.parameters.vfsnippet}
+            <!-- Start New Relic Monitoring -->
+            <script>
+                var hostname = window.location.hostname;
+                var lexOrigin = "https://" + hostname.split('--c.')[0] + ".lightning.force.com";
+                window.addEventListener("message", function(event) {
+                    if (event.origin !== lexOrigin) {
+                        console.log('*** Mon: Bad origin in VF container!! Expected ' + lexOrigin);
+                        // Not the expected origin: reject message!
+                        return;
+                    }
+                    // Handle message
+                    let e = event.data;
+                    console.log('*** Mon: VF container received interaction event from ' + lexOrigin);
+                    console.log(JSON.stringify(e));
+                    if (e.interactionGuid) {
+                        console.log('*** Mon: posting interaction event to New Relic API');
+                        newrelic.setCurrentRouteName (e.interactionRouteStandardised); 
+                        newrelic.interaction().setAttribute('sfdcCorrelationId', e.interactionCorrelationId);
+                        newrelic.interaction().setAttribute('sfdcDurationBrowser', e.interactionDurationBrowser);
+                        newrelic.interaction().setAttribute('sfdcDurationNetwork', e.interactionDurationNetwork);
+                        newrelic.interaction().setAttribute('sfdcDurationServer', e.interactionDurationServer);
+                        newrelic.interaction().setAttribute('sfdcDurationTotal', e.interactionDurationTotal);
+                        newrelic.interaction().setAttribute('sfdcEndTime', e.interactionEndTime);
+                        newrelic.interaction().setAttribute('sfdcGuid', e.interactionGuid);
+                        newrelic.interaction().setAttribute('sfdcHost', e.interactionHost);
+                        newrelic.interaction().setAttribute('sfdcLastNetworkResponseTime', e.interactionNetworkLatencyMs);
+                        newrelic.interaction().setAttribute('sfdcLastRenderActivityTime', e.interactionEndTime);
+                        newrelic.interaction().setAttribute('sfdcNetworkRoundTrips', e.interactionNetworkRoundTrips);
+                        newrelic.interaction().setAttribute('sfdcRoute', e.interactionRouteStandardised);
+                        newrelic.interaction().setAttribute('sfdcStartTime', e.interactionStartTime);
+                        newrelic.interaction().setAttribute('sfdcUser', e.interactionUserId);
+                        newrelic.interaction().setAttribute('sfdcFederationId', e.interactionFederationId);
+                        newrelic.interaction().setAttribute('sfdcUserLocation', e.interactionUserLocation);
+                        newrelic.interaction().save();
+                        newrelic.interaction().end();
+                        console.log('*** Mon: post complete');
+                    } else {
+                        console.log('*** Mon: invalid interaction event format');
+                    }
+                }, false);
+            </script>
+            <!-- End New Relic Monitoring -->
+        </body>
+    </html>
+</apex:page>

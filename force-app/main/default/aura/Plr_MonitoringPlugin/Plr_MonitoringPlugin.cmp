@@ -1,0 +1,7 @@
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" controller="Plr_MonitoringPluginCtrl">
+    <aura:handler name="init" value="this" action="{!c.doInit}"/>
+    <aura:method name="interactionEnd" action="{!c.doInteractionEnd}" 
+        description="Scrapes page for PII and send to PLR"> 
+        <aura:attribute name="interaction" type="String"/> 
+    </aura:method>
+</aura:component>

@@ -1,0 +1,24 @@
+.THIS ul:not(.browser-default) li {
+        list-style-type: disc;
+}
+.THIS .slds-card__header{
+        background-color: #F6F6F6;
+        padding-bottom: 10px;
+}
+.THIS .slds-card__footer{
+        font-size: 10px;
+        background-color: #F6F6F6;
+}
+.THIS .slds-card__body{
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: break-word;
+}
+
+.THIS.spinnerHolder{
+        position: relative;
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+}
+

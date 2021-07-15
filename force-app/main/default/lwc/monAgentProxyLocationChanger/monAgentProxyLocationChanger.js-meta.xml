@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>50.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__FlowScreen</target>
+        <target>lightning__AppPage</target>
+        <target>lightning__RecordPage</target>
+    </targets>
+    <targetConfigs>   
+        <targetConfig targets="lightning__RecordPage,lightning__AppPage,lightning__FlowScreen">
+            <property name="location" type="String" default="location" label="Enter the custom location name to be appended to New Relic route"/>
+            <property name="type" type="String" default="page" label="flow, page, console, embedded"/>
+            <property name="buttonVisible" type="Boolean" default="false" label="Enable to make component visible"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

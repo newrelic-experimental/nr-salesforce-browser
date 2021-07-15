@@ -1,0 +1,41 @@
+<template>
+    <lightning-progress-indicator current-step={currentStep} type="base" variant="base">
+        <lightning-progress-step label="Step 1" value="1" onclick={handleOnStepClick}></lightning-progress-step>
+        <lightning-progress-step label="Step 2" value="2" onclick={handleOnStepClick}></lightning-progress-step>
+        <lightning-progress-step label="Step 3" value="3" onclick={handleOnStepClick}></lightning-progress-step>
+    </lightning-progress-indicator>
+
+    <c-mon-agent-proxy-location-changer type="embedded"></c-mon-agent-proxy-location-changer>
+    <div class="spinner">
+        <template if:true={isLoading}>
+             <lightning-spinner alternative-text="Loading" variant="brand" size="large">
+             </lightning-spinner>
+        </template>
+    </div>    
+    <template if:true={isStepOne}>
+        <div>
+            Step 1
+        </div>
+    </template>
+    <template if:true={isStepTwo}>
+        <div>
+            Step 2
+        </div>
+    </template>
+    <template if:true={isStepThree}>
+        <div>
+            Step 3
+        </div>
+    </template>
+     
+    <template if:true={isEnablePrev}>
+        <lightning-button variant="base" label="Back" onclick={handlePrev}></lightning-button>
+    </template>
+     
+    <template if:true={isEnableNext}>
+        <lightning-button label="Next" variant="brand" onclick={handleNext}></lightning-button>
+    </template>
+    <template if:true={isEnableFinish}>
+        <lightning-button label="Finish" variant="brand" onclick={handleFinish}></lightning-button>
+    </template>    
+</template>

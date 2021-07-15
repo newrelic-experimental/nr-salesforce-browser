@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>PLR_UI_Log</fullName>
+    <columns>CREATED_DATE</columns>
+    <columns>User_Id__c</columns>
+    <columns>IP_Address__c</columns>
+    <columns>Profile_Name__c</columns>
+    <columns>Permission_Sets__c</columns>
+    <columns>Route__c</columns>
+    <columns>Component__c</columns>
+    <columns>Link_Label__c</columns>
+    <columns>Record_Id__c</columns>
+    <columns>Object__c</columns>
+    <filterScope>Mine</filterScope>
+    <label>PLR UI Log</label>
+</ListView>

@@ -1,0 +1,7 @@
+<aura:component>
+    <aura:handler name="init" value="this" action="{!c.doInit}"/>
+    <aura:method name="getUIDetails" action="{!c.doGetUIDetails}" 
+        description="Gets component names and record ids visible on the page"> 
+            <aura:attribute name="standardisedRoute" type="String" default="none"/> 
+    </aura:method>
+</aura:component>	

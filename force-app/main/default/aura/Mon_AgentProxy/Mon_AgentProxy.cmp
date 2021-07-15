@@ -1,0 +1,189 @@
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" controller="Mon_AgentProxyCtrl">
+    
+    <!-- Add this interface if you want the component to be hidden in the Utility Bar and run in background
+    implements="lightning:backgroundUtilityItem">
+    -->
+
+    <lightning:workspaceAPI aura:id="workspace" />	
+    <aura:handler name="init" value="this" action="{!c.doInit}"/>
+    <!-- 
+    <aura:handler event="aura:locationChange" action="{!c.handleLocationChange}"/>
+    <aura:handler event="aura:doneRendering" action="{!c.handleDoneRendering}"/>
+    -->
+
+    <!-- Global Variables -->
+    <aura:attribute name="version" type="String" default="v0.1.2"/>
+    <aura:attribute name="displayError" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String" default=""/>
+    <aura:attribute name="footer" type="String" default=""/>
+
+    <aura:attribute name="disableAutoLocationChangeDetection" type="Boolean" default="false"/> <!-- Can be overidden by component design param -->
+    <aura:attribute name="primarySnippet" type="String" default="mon_primary_snippet"/> <!-- Can be overidden by component design param -->
+    <aura:attribute name="secondarySnippet" type="String" default="mon_secondary_snippet"/> <!-- Can be overidden by component design param -->
+ 
+    <!-- Global Switches - Enabled via Custom Permissions -->
+    <aura:attribute name="debugOn" type="Boolean" default="true"/>
+    <aura:attribute name="agentEnabled" type="Boolean" default="false"/>
+    <aura:attribute name="useSecondaryAgent" type="Boolean" default="false"/>
+
+    <!-- Globals - Custom Permissions enabling above booleans -->
+    <aura:attribute name="customPermissionDebugOn" type="String" default="CP_MonAgentProxyDebugOn"/>
+    <aura:attribute name="customPermissionAgentEnabled" type="String" default="CP_MonAgentProxyAgentEnabled"/>  <!-- Can be overidden by component design param -->
+    <aura:attribute name="customPermissionUseSecondaryAgent" type="String" default="CP_MonAgentProxyUseSecondaryAgent"/>
+
+    <!-- Timers -->
+    <aura:attribute name="timerInteractionIdleMs" type="Integer" default="500"/> <!-- Can be overidden by component design param -->
+    <aura:attribute name="timerInteractionIdleId" type="Decimal" default="0"/>
+
+    <aura:attribute name="timerNetworkActivityMs" type="Integer" default="5000"/> <!-- Can be overidden by component design param -->
+    <aura:attribute name="timerNetworkActivityMsCurrent" type="Integer" default="5000"/> 
+    <aura:attribute name="timerNetworkActivityId" type="Decimal" default="0"/>
+
+    <aura:attribute name="lastNetworkLatencyMs" type="Decimal" default="100"/>
+    
+    <!-- Interaction state variables, keep track of interaction -->
+    <aura:attribute name="interactionState" type="String" default="WAITING_COMPONENT_INITIALISATION"/>
+    <aura:attribute name="interactionNetworkRequestsInProgress" type="Set"/>
+    <aura:attribute name="interactionNetworkActivityStartTime" type="DateTime" default="0"/>
+    <aura:attribute name="interactionNetworkActivityLastActivityTime" type="DateTime" default="0"/>
+    <aura:attribute name="interactionInProgress" type="Boolean" default="false"/>
+
+    <!-- Interaction constants, set once when component initialises -->
+    <aura:attribute name="interactionUserId" type="String" default=""/>
+    <aura:attribute name="interactionProfileName" type="String" default=""/>
+    <aura:attribute name="interactionPermissionSets" type="String" default=""/>
+    <aura:attribute name="interactionIpAddress" type="String" default=""/>
+    <aura:attribute name="interactionFederationId" type="String" default=""/>
+    <aura:attribute name="interactionUserLocation" type="String" default=""/>
+    <aura:attribute name="interactionHost" type="String" default=""/>
+
+    <!-- Per interaction variables, set for each new interaction  -->
+    <aura:attribute name="interactionGuid" type="String" default=""/>
+    <aura:attribute name="interactionCorrelationId" type="String" default="not set"/>
+    <aura:attribute name="interactionRoute" type="String" default=""/>
+    <aura:attribute name="interactionRouteStandardised" type="String" default=""/>
+    <aura:attribute name="interactionDurationTotal" type="Decimal" default="0"/>
+    <aura:attribute name="interactionDurationBrowser" type="Decimal" default="0"/>
+    <aura:attribute name="interactionDurationNetwork" type="Decimal" default="0"/>
+    <aura:attribute name="interactionDurationServer" type="Decimal" default="0"/>
+    <aura:attribute name="interactionStartTime" type="DateTime" default="0"/>
+    <aura:attribute name="interactionEndTime" type="DateTime" default="0"/>
+    <aura:attribute name="interactionRenders" type="Integer" default="0"/>
+    <aura:attribute name="interactionNetworkRoundTrips" type="Integer" default="0"/>
+    <aura:attribute name="interactionNetworkLatencyMs" type="Integer" default="0"/>
+
+    <!-- Monitoring plugin Aura:id's -->
+    <aura:attribute name="monitoringPluginIds" type="Set"/>
+
+    <!-- PLR PoC -->  
+    <aura:attribute name="interactionRecordIds" type="Set"/>
+
+    <!-- Attributes used to setup VF container containing monitoring snippet -->    
+    
+    <aura:attribute name="vfHostOldFormat" type="String" default=""/> 
+    <aura:attribute name="vfHostNewFormat" type="String" default=""/> 
+    
+    <aura:attribute name="vfUrl" type="String" access="private" default="" />   
+
+    <aura:attribute name="vfHost" type="String" access="private"/>
+    <aura:attribute name="iframeUrl" type="String" default="/apex/Mon_AgentProxyVFContainer" access="private"/>
+
+    <aura:attribute name="vfPageAtr" type="String" default="?vfpage=" access="private"/>   
+    <aura:attribute name="vfPageVal" type="String" default="page" access="private"/>
+    <aura:attribute name="vfHostAtr" type="String" default="&amp;vfhost=" access="private"/>   
+    <aura:attribute name="vfHostVal" type="String" default="https://salesforce.com" access="private"/>
+    <aura:attribute name="vfSnippetResourceAtr" type="String" default="&amp;vfsnippet=" access="private"/>   
+    <aura:attribute name="vfSnippetResourceVal" type="String" default="vfsnippet" access="private"/>
+	
+    <!-- Selectively display agent -->
+    <aura:if isTrue="{!v.agentEnabled}">
+        <lightning:card variant="Narrow" iconName="utility:clock" title="Route metrics"  footer="{!v.footer}">   
+            <div class="slds-is-relative">
+                <p class="slds-p-left_x-small slds-text-body_small slds-text-color_weak">Route</p>
+                <p class="slds-p-bottom_x-small slds-p-left_x-small slds-text-body_medium"><strong>{!v.interactionRouteStandardised}</strong></p>
+                <aura:if isTrue="{!v.interactionInProgress}">
+                    <div class="slds-spinner_container" aura:id="uploadSpinner">
+                        <div class="slds-spinner slds-spinner--small" aria-hidden="false" role="alert">
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </aura:if>
+            </div>
+
+            <table class="slds-table slds-table--bordered slds-table--fixed-layout slds-text-body_small">
+                <thead>
+                    <tr>
+                        <th>Load Times</th>
+                        <th>ms</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Total</td>
+                        <td>{!v.interactionDurationTotal}</td>
+                    </tr>
+                    <tr>
+                        <td>Browser</td>
+                        <td>{!v.interactionDurationBrowser}</td>
+                    </tr>
+                    <tr>
+                        <td>Network</td>
+                        <td>{!v.interactionDurationNetwork}</td>
+                    </tr>
+                    <tr>
+                        <td>Server</td>
+                        <td>{!v.interactionDurationServer}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <br></br>
+            <table class="slds-table slds-table--bordered slds-table--fixed-layout slds-text-body_small">
+                <thead>
+                    <tr>
+                        <th>Other Metrics</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>User Id</td>
+                        <td class="slds-cell-wrap">{!v.interactionFederationId}</td>
+                    </tr>
+                    <tr>
+                        <td>User Location</td>
+                        <td class="slds-cell-wrap">{!v.interactionUserLocation}</td>
+                    </tr>
+                    <tr>
+                        <td>Render Events</td>
+                        <td>{!v.interactionRenders}</td>
+                    </tr>
+                    <tr>
+                        <td>Round Trips</td>
+                        <td>{!v.interactionNetworkRoundTrips}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </lightning:card>
+        <br></br>
+        <aura:if isTrue="{!v.disableAutoLocationChangeDetection}">
+            <!-- Relay location change events to other components -->
+            <c:Mon_AgentProxyLocationChangeListener></c:Mon_AgentProxyLocationChangeListener>
+        </aura:if>
+        <!-- VF Container containing the monitoring snippet -->
+        <iframe aura:id="vfFrame" name="vfFrame" src="{!v.vfUrl}" style="width: 40; height: 40; border: 0; border: none;"/>
+    <aura:set attribute="else">
+        <div class="slds-var-m-around_x-small">
+            <img id="isNotEnabled" src="/img/permissions_deny16.gif" alt="Not enabled"></img>
+            Monitoring agent <Strong>not enabled</Strong> for this user
+        </div>
+    </aura:set>
+    </aura:if>
+
+    <aura:if isTrue="{!v.displayError}">
+        <div class="slds-text-color_error">
+            {!v.errorMessage}
+        </div>
+    </aura:if>
+    
+</aura:component>	

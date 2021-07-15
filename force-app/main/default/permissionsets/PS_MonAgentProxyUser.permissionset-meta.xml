@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <classAccesses>
+        <apexClass>Mon_AgentProxyCtrl</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>Mon_AgentProxyUserDetails</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <customPermissions>
+        <enabled>true</enabled>
+        <name>CP_MonAgentProxyAgentEnabled</name>
+    </customPermissions>
+    <description>User of the monitoring agent Utility Bar plugin</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>PS_MonAgentProxyUser</label>
+</PermissionSet>

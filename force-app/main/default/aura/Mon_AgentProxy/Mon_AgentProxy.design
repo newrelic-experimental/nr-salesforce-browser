@@ -1,0 +1,8 @@
+<design:component >
+    <design:attribute name="disableAutoLocationChangeDetection" label="Disable auto detection of location/route changes" description="If disabled, then location changes must be signalled manually using location change component"/>	
+    <design:attribute name="customPermissionAgentEnabled" label="Custom Permission to Enable" description="Name of Custom permission needed by user to run this component" />	
+    <design:attribute name="timerInteractionIdleMs" label="Render idle timer" description="Number of milliseconds to wait for a new render activity before we assume the interaction is complete" />	
+    <design:attribute name="timerNetworkActivityMs" label="Network idle timer" description="Number of milliseconds to wait for a new network request or response before we assume a sequence of network activity is complete" />
+    <design:attribute name="primarySnippet" label="Primary snippet resource " description="Static resource containing primary monitoring snippet"/>		
+    <design:attribute name="secondarySnippet" label="Secondary snippet resource " description="Static resource containing secondary or test monitoring snippet"/>	
+</design:component>
